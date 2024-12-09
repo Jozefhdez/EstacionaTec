@@ -3,20 +3,12 @@ import pymysql
 
 app = Flask(__name__)
 
-# Configuración de MySQL
-# MYSQL_HOST = 'localhost'
-# MYSQL_USER = 'root'
-# MYSQL_PASSWORD = 'Colombia10'
-# MYSQL_DB = 'estacionaTec'
+# MySQL settings (Change to use)
+MYSQL_HOST = '00.00.00.000'
+MYSQL_USER = 'xxxxx'
+MYSQL_PASSWORD = '*******'
+MYSQL_DB = 'EstacionaTec'
 
-# Configuración de MySQL
-MYSQL_HOST = '10.43.33.232' # Cambiar en caso que la ip de la rasp cambie
-MYSQL_USER = 'balta'
-MYSQL_PASSWORD = '2581'
-MYSQL_DB = 'estacionaTEC'
-
-
-# Crear la conexión con la base de datos
 def get_db_connection():
     return pymysql.connect(
         host=MYSQL_HOST,
@@ -25,7 +17,6 @@ def get_db_connection():
         database=MYSQL_DB
     )
 
-# Endpoint para obtener datos de usuarios
 @app.route('/data', methods=['GET'])
 def get_usuarios():
     connection = get_db_connection()
@@ -59,7 +50,6 @@ def get_usuarios():
     connection.close()
     return jsonify(usuarios)
 
-# Endpoint para actualizar el estado de entrada (door_id = 1)
 @app.route('/set_requested_entrada', methods=['POST'])
 def set_requested_entrada():
     connection = get_db_connection()
@@ -104,7 +94,6 @@ def update_salida_y_reset():
     return jsonify(response), 200
 
 
-# Endpoint para actualizar el edificio de un usuario (cuando entra o sale)
 @app.route('/updateEdificio', methods=['POST'])
 def update_edificio():
     data = request.get_json()
@@ -117,14 +106,12 @@ def update_edificio():
     connection = get_db_connection()
     cur = connection.cursor()
     try:
-        # Comprobamos si la matrícula existe en la base de datos
         cur.execute("SELECT * FROM Users WHERE tuition = %s", (matricula,))
         user = cur.fetchone()
         
         if not user:
             return jsonify({"status": "Error", "message": "Usuario no encontrado"}), 404
         
-        # Actualiza el edificio según la matrícula del usuario
         cur.execute("UPDATE Users SET building = %s WHERE tuition = %s", (edificio, matricula))
         connection.commit()
         response = {"status": "building actualizado exitosamente"}
@@ -139,7 +126,6 @@ def update_edificio():
 
 
 
-# Endpoint para asignar un lugar a un usuario
 @app.route('/get_lugares', methods=['GET'])
 def get_lugares():
     connection = get_db_connection()
@@ -158,7 +144,6 @@ def get_lugares():
     return jsonify(lugares), 200
 
 
-# Endpoint para asignar un lugar a un usuario
 @app.route('/asignar_lugar', methods=['POST'])
 def asignar_lugar():
     data = request.get_json()
@@ -171,7 +156,6 @@ def asignar_lugar():
     cur = connection.cursor()
 
     try:
-        # Obtener el edificio del usuario
         cur.execute("SELECT building FROM Users WHERE tuition = %s", (matricula,))
         user_info = cur.fetchone()
         
@@ -180,7 +164,6 @@ def asignar_lugar():
 
         building = user_info[0]
 
-        # Obtener el lugar disponible en el edificio
         cur.execute("""
             SELECT place_id
             FROM Places
@@ -191,7 +174,6 @@ def asignar_lugar():
         place_info = cur.fetchone()
         
         if not place_info:
-            # Obtener el lugar disponible en el edificio más cerca
 
             if(building == "Edificio A"):
                 building = "Edificio B"
@@ -211,7 +193,6 @@ def asignar_lugar():
             if not place_info:
                 return jsonify({"status": "Error", "message": "No hay lugares disponibles"}), 404
         
-        # Asignar el lugar al usuario
         place_id = place_info[0]
         cur.execute("""
             UPDATE Places
@@ -237,7 +218,6 @@ def asignar_lugar():
         cur.close()
         connection.close()
 
-# Endpoint para liberar el lugar del usuario
 @app.route('/liberar_lugar', methods=['POST'])
 def liberar_lugar():
     data = request.get_json()
@@ -250,7 +230,6 @@ def liberar_lugar():
     cur = connection.cursor()
 
     try:
-        # Obtener el lugar del usuario
         cur.execute("""
             SELECT place_id
             FROM Places
@@ -264,7 +243,6 @@ def liberar_lugar():
         
         place_id = place_info[0]
 
-        # Liberar el lugar
         cur.execute("""
             UPDATE Places
             SET taken = 1, user_id = NULL
@@ -285,6 +263,5 @@ def liberar_lugar():
 
 
 if __name__ == '__main__':
-    # app.run(host='10.43.60.177', port=5000, debug=True)
-    # Cambiar en caso que la ip del internet cambie (En caso que lo haga hay que cambiarla en swift
-    app.run(host='10.43.56.230', port=5000, debug=True)
+    # Change host to run app
+    app.run(host='00.00.00.000', port=5000, debug=True)
